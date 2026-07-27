@@ -1,0 +1,17 @@
+name: room_scene_view
+description: SceneKit USDZ viewer with tap hit-test, for roomtest.
+version: 0.0.1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: RoomSceneViewPlugin
