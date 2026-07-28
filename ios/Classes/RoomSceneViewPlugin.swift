@@ -43,8 +43,7 @@ class RoomSceneView: NSObject, FlutterPlatformView {
         scnView.autoenablesDefaultLighting = true
         scnView.backgroundColor = UIColor.white
 
-        let status = "TEST: view alive"
-        scnView.backgroundColor = UIColor.red
+let status = load(args: args)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.channel.invokeMethod("status", arguments: status)
         }
