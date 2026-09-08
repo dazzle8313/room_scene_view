@@ -96,6 +96,12 @@ class RoomSceneView: NSObject, FlutterPlatformView {
             cameraNode.look(at: SCNVector3(cx, cy, cz))
             scnView.defaultCameraController.target = SCNVector3(cx, cy, cz)
 
+            // ビューの大きさが決まってから、シーン全体が画面に収まる位置に寄せる
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self = self, let root = self.scnView.scene?.rootNode else { return }
+                self.scnView.defaultCameraController.frameNodes([root])
+            }
+
             var names: [String] = []
             scene.rootNode.enumerateChildNodes { n, _ in
                 if let s = n.name, !s.isEmpty { names.append(s) }
