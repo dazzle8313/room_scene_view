@@ -43,7 +43,10 @@ class RoomSceneView: NSObject, FlutterPlatformView {
         scnView.autoenablesDefaultLighting = true
         scnView.backgroundColor = UIColor.white
 
-        let status = buildTest()
+        // Flutter から渡された usdzPath を読む
+        let dict = args as? [String: Any]
+        let path = (dict?["usdzPath"] as? String) ?? ""
+        let status = loadUsdz(path: path)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.channel.invokeMethod("status", arguments: status)
@@ -55,7 +58,57 @@ class RoomSceneView: NSObject, FlutterPlatformView {
 
     func view() -> UIView { return scnView }
 
-    // MARK: - 穴あき壁の生成テスト
+    // MARK: - USDZ の読み込み
+
+    private func loadUsdz(path: String) -> String {
+        if path.isEmpty {
+            _ = buildTest()
+            return "USDZ path empty -> test scene"
+        }
+        if !FileManager.default.fileExists(atPath: path) {
+            _ = buildTest()
+            return "USDZ not found -> test scene: \(path)"
+        }
+        do {
+            let url = URL(fileURLWithPath: path)
+            let scene = try SCNScene(url: url, options: [.checkConsistency: false])
+            scene.background.contents = UIColor.white
+            scnView.scene = scene
+
+            // シーン全体が画面に収まる位置にカメラを置く
+            let cameraNode = SCNNode()
+            cameraNode.camera = SCNCamera()
+            cameraNode.camera?.zNear = 0.01
+            cameraNode.camera?.zFar = 500
+            scene.rootNode.addChildNode(cameraNode)
+            scnView.pointOfView = cameraNode
+
+            let (minV, maxV) = scene.rootNode.boundingBox
+            let cx = (minV.x + maxV.x) / 2
+            let cy = (minV.y + maxV.y) / 2
+            let cz = (minV.z + maxV.z) / 2
+            let sx = maxV.x - minV.x
+            let sy = maxV.y - minV.y
+            let sz = maxV.z - minV.z
+            let span = max(max(sx, sy), sz)
+            let d = max(span * 1.6, 1.0)
+            cameraNode.position = SCNVector3(cx + d * 0.6, cy + d * 0.8, cz + d * 0.9)
+            cameraNode.look(at: SCNVector3(cx, cy, cz))
+            scnView.defaultCameraController.target = SCNVector3(cx, cy, cz)
+
+            var names: [String] = []
+            scene.rootNode.enumerateChildNodes { n, _ in
+                if let s = n.name, !s.isEmpty { names.append(s) }
+            }
+            let head = names.prefix(8).joined(separator: ", ")
+            return "USDZ OK nodes=\(names.count) [\(head)]"
+        } catch {
+            _ = buildTest()
+            return "USDZ load error -> test scene: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - 穴あき壁の生成テスト（3-3 のスパイク。USDZが読めない時のフォールバック）
 
     /// 壁1枚を、開口部を避けて上下左右4枚に割って作る。
     /// 単位はメートル。x方向に長さ、y方向に高さ、厚みはごく薄い板。
