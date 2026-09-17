@@ -220,7 +220,8 @@ class RoomSceneView: NSObject, FlutterPlatformView {
                       let pts = o["pts"] as? [[Any]], pts.count >= 3
                 else { continue }
                 if deleted.contains(no) { continue }
-                if kind != "stairs" && kind != "storage" { continue }
+                let furn = (d["furn"] as? NSNumber)?.boolValue ?? false
+                if !furn && kind != "stairs" && kind != "storage" { continue }
 
                 let hmm = (o["h"] as? NSNumber)?.doubleValue ?? 700.0
                 let oh: CGFloat = CGFloat((hmm > 0 ? hmm : 700.0) / 1000.0)
