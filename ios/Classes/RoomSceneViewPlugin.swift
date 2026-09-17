@@ -222,7 +222,8 @@ class RoomSceneView: NSObject, FlutterPlatformView {
                 if deleted.contains(no) { continue }
                 if kind != "stairs" && kind != "storage" { continue }
 
-                let oh: CGFloat = 0.7
+                let hmm = (o["h"] as? NSNumber)?.doubleValue ?? 700.0
+                let oh: CGFloat = CGFloat((hmm > 0 ? hmm : 700.0) / 1000.0)
                 let path = UIBezierPath()
                 for (i, p) in pts.enumerated() {
                     guard let a = p.first as? NSNumber, let b = p.last as? NSNumber else { continue }
